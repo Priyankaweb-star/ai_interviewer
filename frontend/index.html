@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Live Interview</title>
+</head>
+<body>
+
+<h2>🎤 AI Interviewer</h2>
+
+<button onclick="startListening()">Start Answer</button>
+<button onclick="stopListening()">Stop</button>
+
+<p><b>Your Answer:</b></p>
+<textarea id="output" rows="6" cols="60"></textarea>
+
+<script>
+let recognition;
+
+function startListening() {
+  recognition = new webkitSpeechRecognition() || new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.lang = "en-US";
+
+  recognition.onresult = (event) => {
+    let text = "";
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      text += event.results[i][0].transcript;
+    }
+    document.getElementById("output").value = text;
+  };
+
+  recognition.start();
+}
+
+async function stopListening() {
+  recognition.stop();
+
+  const answer = document.getElementById("output").value;
+
+  const res = await fetch("http://127.0.0.1:8000/evaluate-answer", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ answer })
+  });
+
+  const data = await res.json();
+  alert("AI Feedback Generated! Check console");
+  console.log(data);
+}
+</script>
+
+
+</body>
+</html>
